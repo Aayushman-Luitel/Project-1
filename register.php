@@ -1,31 +1,69 @@
 <?php
-
 include 'config.php';
 
 if(isset($_POST['submit'])){
 
-   $name = mysqli_real_escape_string($conn, $_POST['name']);
-   $email = mysqli_real_escape_string($conn, $_POST['email']);
-   $pass = mysqli_real_escape_string($conn, md5($_POST['password']));
-   $cpass = mysqli_real_escape_string($conn, md5($_POST['cpassword']));
-   $user_type = $_POST['user_type'];
+   $name = trim($_POST['name']);
+   $raw_email = trim($_POST['email']); // Get raw email first
+   $password = $_POST['password'];
+   $cpassword = $_POST['cpassword'];
+   $user_type = 'user';
 
-   $select_users = mysqli_query($conn, "SELECT * FROM `users` WHERE email = '$email' AND password = '$pass'") or die('query failed');
+   $messages = [];
 
-   if(mysqli_num_rows($select_users) > 0){
-      $message[] = 'user already exist!';
-   }else{
-      if($pass != $cpass){
-         $message[] = 'confirm password not matched!';
-      }else{
-         mysqli_query($conn, "INSERT INTO `users`(name, email, password, user_type) VALUES('$name', '$email', '$cpass', '$user_type')") or die('query failed');
-         $message[] = 'registered successfully!';
-         header('location:login.php');
-      }
+   // Name validation (3-20 LETTERS excluding spaces)
+   $clean_name = preg_replace('/\s+/', '', $name); // Remove all spaces
+   $name_length = strlen($clean_name);
+   
+   if($name_length < 3 || $name_length > 20) {
+       $messages[] = 'Name must contain 3-20 letters (spaces ignored)';
+   }
+   if(!preg_match('/^[A-Za-z ]+$/', $name)) {
+       $messages[] = 'Name can only contain letters and spaces';
    }
 
-}
+   // Email validation (strict format)
+   if(!preg_match('/^[a-zA-Z0-9]+@[a-zA-Z0-9]+\.[a-zA-Z]{2,}$/', $raw_email)) {
+      $messages[] = 'Invalid email format (example: c@c.com)';
+  }
 
+  // Password validation
+  if(strlen($password) > 20) {
+      $messages[] = 'Password cannot exceed 20 characters';
+  }
+  if($password !== $cpassword) {
+      $messages[] = 'Passwords do not match!';
+  }
+
+  // Proceed if no errors
+  if(empty($messages)){
+      // Sanitize inputs AFTER validation
+      $name = mysqli_real_escape_string($conn, $name);
+      $email = mysqli_real_escape_string($conn, $raw_email); // Sanitize email here
+
+      // Check existing user
+      $stmt = mysqli_prepare($conn, "SELECT email FROM users WHERE email = ?");
+      mysqli_stmt_bind_param($stmt, "s", $email);
+      mysqli_stmt_execute($stmt);
+      mysqli_stmt_store_result($stmt);
+
+      if(mysqli_stmt_num_rows($stmt) > 0){
+          $messages[] = 'User already exists!';
+      } else {
+          // Insert new user
+          $password_hash = password_hash($password, PASSWORD_DEFAULT);
+          $insert_stmt = mysqli_prepare($conn, "INSERT INTO users (name, email, password, user_type) VALUES (?, ?, ?, ?)");
+          mysqli_stmt_bind_param($insert_stmt, "ssss", $name, $email, $password_hash, $user_type);
+          mysqli_stmt_execute($insert_stmt);
+
+          $messages[] = 'Registered successfully!';
+          header('Location: login.php');
+          exit();
+      }
+  }
+
+   $message = $messages; // For existing message display
+}
 ?>
 
 <!DOCTYPE html>
@@ -59,27 +97,36 @@ if(isset($message)){
 }
 ?>
    
-<div class="form-container">
-
+   <div class="form-container">
    <form action="" method="post" id="myForm">
       <h3>register now</h3>
 
-       <!-- <input type="text" name="name" placeholder="Enter your name" pattern="[A-Za-z\s]*(?![\s]+$).*" title="Only letters and spaces are allowed, and input cannot be only spaces"  required class="box"> -->
-       <input type="text" id="name" name="name" placeholder="Enter your name" required class="box">
-       <span id="error" class="error"></span>
+      <input type="text" name="name" id="name" placeholder="Enter your name" 
+       pattern="[A-Za-z ]{3,}" 
+       title="3-20 letters (spaces allowed b
+       ut not counted)"
+       required class="box">
 
+       <input type="email" name="email" placeholder="Enter your email" 
+       pattern="[a-zA-Z0-9]+@[a-zA-Z0-9]+\.[a-zA-Z]{2,}" 
+       title="Email must be in format: c@c.com" 
+       required class="box">
 
-      <input type="email" name="email" placeholder="enter your email" required class="box">
-      <input type="password" name="password" placeholder="enter your password" pattern = ".*\S.*" title="Password must contains at least one non-space character" minlength="6" required class="box">
-      <input type="password" name="cpassword" placeholder="confirm your password" pattern=".*\S.*" title="Password must contains at least one non-space character" minlength="6" required class="box">
-      <select name="user_type" class="box">
-         <option value="user">user</option>
-         <option value="admin">admin</option>
-      </select>
+      <input type="password" name="password" placeholder="Enter your password" 
+             minlength="6" maxlength="20" 
+             title="Password must be 6-20 characters" 
+             required class="box">
+
+      <input type="password" name="cpassword" placeholder="Confirm your password" 
+             minlength="6" maxlength="20" 
+             title="Password must be 6-20 characters" 
+             required class="box">
+
+      <input type="hidden" name="user_type" value="user"> 
+
       <input type="submit" name="submit" value="register now" class="btn">
-      <p>already have an account? <a href="login.php">login now</a></p>
+      <p>Already have an account? <a href="login.php">Login now</a></p>
    </form>
-
 </div>
 <script src="js/error.js"></script>
 

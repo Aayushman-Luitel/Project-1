@@ -216,10 +216,11 @@ section{
 
 .form-container form p a{
    color:var(--purple);
+   text-decoration: underline;
 }
 
 .form-container form p a:hover{
-   text-decoration: underline;
+  color :  #a409e5
 }
 
 .header .header-1{

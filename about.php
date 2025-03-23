@@ -168,7 +168,7 @@ if(!isset($user_id)){
             <a href="#" class="fab fa-instagram"></a>
             <a href="#" class="fab fa-linkedin"></a>
          </div>
-         <h3>Chandan Khanal</h3>
+         <h3>Chandani Khanal</h3>
       </div>
 
       <div class="box">
@@ -190,7 +190,7 @@ if(!isset($user_id)){
             <a href="#" class="fab fa-instagram"></a>
             <a href="#" class="fab fa-linkedin"></a>
          </div>
-         <h3>Harry Potter</h3>
+         <h3>Ema Watson</h3>
       </div>
 
       <div class="box">
@@ -212,7 +212,7 @@ if(!isset($user_id)){
             <a href="#" class="fab fa-instagram"></a>
             <a href="#" class="fab fa-linkedin"></a>
          </div>
-         <h3>Chris Henry</h3>
+         <h3>Christiana William</h3>
       </div>
 
    </div>

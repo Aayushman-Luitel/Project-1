@@ -107,6 +107,7 @@ if(isset($_POST['add_to_cart'])){
          <p>Because we’re more than just a bookstore – we’re your gateway to a world of imagination, knowledge, and inspiration. With carefully curated selections, seamless delivery, and a passion for connecting readers with the perfect book, we strive to make your reading experience exceptional. </p>
          <a href="about.php" class="btn">read more</a>
       </div>
+      
 
    </div>
 
